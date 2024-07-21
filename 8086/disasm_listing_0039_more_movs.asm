@@ -1,0 +1,58 @@
+;10001001
+;11011110
+;10001000
+;11000110
+;10110001
+;00001100
+;10110101
+;11110100
+;10111001
+;00001100
+;00000000
+;10111001
+;11110100
+;11111111
+;10111010
+;01101100
+;00001111
+;10111010
+;10010100
+;11110000
+;10001010
+;00000000
+;10001011
+;00011011
+;10001011
+;01010110
+;00000000
+;10001010
+;01100000
+;00000100
+;10001010
+;10000000
+;10000111
+;00010011
+;10001001
+;00001001
+;10001000
+;00001010
+;10001000
+;01101110
+;00000000
+bits 16
+mov si, bx; OPCODE: 8, D: 0, W: 1, MOD 3, REG 3, R_M 6 
+mov dh, al; OPCODE: 8, D: 0, W: 0, MOD 3, REG 0, R_M 6 
+mov cl, 12; OPCODE: 11, W: 0, REG 1 
+mov ch, 244; OPCODE: 11, W: 0, REG 5 
+mov cx, 12; OPCODE: 11, W: 1, REG 1 
+mov cx, 65524; OPCODE: 11, W: 1, REG 1 
+mov dx, 3948; OPCODE: 11, W: 1, REG 2 
+mov dx, 61588; OPCODE: 11, W: 1, REG 2 
+mov al, [bx + si]; OPCODE: 8, D: 1, W: 0, MOD 0, REG 0, R_M 0 
+mov bx, [bp + di]; OPCODE: 8, D: 1, W: 1, MOD 0, REG 3, R_M 3 
+mov dx, [bp + 0]; OPCODE: 8, D: 1, W: 1, MOD 1, REG 2, R_M 6 
+mov ah, [bx + si + 4]; OPCODE: 8, D: 1, W: 0, MOD 1, REG 4, R_M 0 
+mov al, [bx + si + 4999]; OPCODE: 8, D: 1, W: 0, MOD 2, REG 0, R_M 0 
+mov [bx + di], cx; OPCODE: 8, D: 0, W: 1, MOD 0, REG 1, R_M 1 
+mov [bp + si], cl; OPCODE: 8, D: 0, W: 0, MOD 0, REG 1, R_M 2 
+mov [bp + 0], ch; OPCODE: 8, D: 0, W: 0, MOD 1, REG 5, R_M 6 
