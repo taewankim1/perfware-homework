@@ -48,6 +48,11 @@ const char* get_effective_address(uint8_t R_M){
     return address[R_M];
 }
 
+char get_sign_displacement(int test){
+    if (test) return '+';
+    else return '-';
+}
+
 void disasm(uint8_t* data, size_t size){
     // size_t len_instruction = size / 2;
     uint8_t OPCODE;
@@ -56,12 +61,16 @@ void disasm(uint8_t* data, size_t size){
     uint8_t MOD;
     uint8_t REG;
     uint8_t R_M;
+    const char* source;
+    const char* destination;
     int i = 0;
     while (i < size){
         uint8_t Left = data[i++];
         OPCODE = (Left >> 4);
-        if (OPCODE == 0b1000){
-            if (Left >> 2 == 0b100010){
+        // MOV
+        if ( (Left >> 2 == 0b100010) || (Left >> 1) == 0b1100011 || (Left >> 4) == 0b1011){
+            OPCODE = Left >> 2;
+            if (OPCODE == 0b100010){
                 uint8_t Right = data[i++];
                 W = Left & 1;
                 D = (Left >> 1) & 1;
@@ -70,19 +79,20 @@ void disasm(uint8_t* data, size_t size){
                 MOD = (Right >> 6) & 3;
                 if (MOD == 3){
                     if (D == 0){
-                        printf("mov %s, %s; OPCODE: %u, D: %u, W: %u, MOD %u, REG %u, R_M %u \n",
-                        get_REG(W,R_M), get_REG(W,REG),OPCODE, D, W, MOD, REG, R_M);
-
+                        destination = get_REG(W,R_M);
+                        source = get_REG(W,REG);
                     }
                     else{
-                        printf("mov %s, %s; OPCODE: %u, D: %u, W: %u, MOD %u, REG %u, R_M %u \n",
-                        get_REG(W,REG), get_REG(W,R_M),OPCODE, D, W, MOD, REG, R_M);
+                        source = get_REG(W,R_M);
+                        destination = get_REG(W,REG);
                     }
+                    printf("mov %s, %s; OPCODE: %u, D: %u, W: %u, MOD %u, REG %u, R_M %u \n",
+                    destination, source, OPCODE, D, W, MOD, REG, R_M);
                 }
                 else{
-                    uint16_t displacement = 0;
+                    int16_t displacement = 0;
                     if (MOD == 1) {
-                        displacement += data[i++];
+                        displacement += (int8_t) data[i++];
                     }
                     else if (MOD == 2){
                         displacement += data[i++];
@@ -90,12 +100,18 @@ void disasm(uint8_t* data, size_t size){
                     }
                     if (D == 1)
                         if (MOD == 0){
+                            destination = get_REG(W,R_M);
+                            destination = get_REG(W,REG);
                             printf("mov %s, [%s]; OPCODE: %u, D: %u, W: %u, MOD %u, REG %u, R_M %u \n",
                                 get_REG(W,REG), get_effective_address(R_M),OPCODE, D, W, MOD, REG, R_M);
                         }
                         else{
-                            printf("mov %s, [%s + %d]; OPCODE: %u, D: %u, W: %u, MOD %u, REG %u, R_M %u \n",
-                                get_REG(W,REG), get_effective_address(R_M),displacement,OPCODE, D, W, MOD, REG, R_M);
+                            printf("mov %s, [%s %c %d]; OPCODE: %u, D: %u, W: %u, MOD %u, REG %u, R_M %u \n",
+                                get_REG(W,REG),
+                                get_effective_address(R_M),
+                                get_sign_displacement(displacement >= 0),
+                                abs(displacement),
+                                OPCODE, D, W, MOD, REG, R_M);
                         }
                     else if (D == 0){
                         if (MOD == 0){
@@ -103,25 +119,68 @@ void disasm(uint8_t* data, size_t size){
                                 get_effective_address(R_M),get_REG(W,REG),OPCODE, D, W, MOD, REG, R_M);
                         }
                         else{
-                            printf("mov [%s + %d], %s; OPCODE: %u, D: %u, W: %u, MOD %u, REG %u, R_M %u \n",
-                                get_effective_address(R_M),displacement,get_REG(W,REG),OPCODE, D, W, MOD, REG, R_M);
+                            printf("mov [%s %c %d], %s; OPCODE: %u, D: %u, W: %u, MOD %u, REG %u, R_M %u \n",
+                                get_effective_address(R_M),
+                                get_sign_displacement(displacement >= 0),
+                                abs(displacement),
+                                get_REG(W,REG),OPCODE, D, W, MOD, REG, R_M);
                         }
                     }
                 }
             }
-        }
-        else if(OPCODE == 0b1011){
-            W = (Left >> 3) & 1;
-            REG = Left & 7;
-            uint16_t val = data[i++];
-            if (W  == 1){
-                val = val + (data[i++] << 8);
+            else if((Left >> 4) == 0b1011){
+                W = (Left >> 3) & 1;
+                REG = Left & 7;
+                uint16_t val = data[i++];
+                if (W  == 1){
+                    val = val + (data[i++] << 8);
+                }
+                printf("mov %s, %d; OPCODE: %u, W: %u, REG %u \n",
+                    get_REG(W,REG), val,OPCODE, W, REG);
             }
-            printf("mov %s, %d; OPCODE: %u, W: %u, REG %u \n",
-                get_REG(W,REG), val,OPCODE, W, REG);
+            else if(Left >> 1 == 0b1100011){
+                W = Left & 1;
+                uint8_t Right = data[i++];
+                MOD = (Right >> 6) & 3;
+                R_M = Right & 7;
+                int16_t displacement = 0;
+                if (MOD == 1) {
+                    displacement += (int8_t) data[i++];
+                }
+                else if (MOD == 2){
+                    displacement += data[i++];
+                    displacement += (data[i++] << 8);
+                }
+                uint16_t val = data[i++];
+                if (W == 0){
+                    printf("mov [%s %c %d], byte %d \n",
+                        get_effective_address(R_M),
+                        get_sign_displacement(displacement >= 0),
+                        abs(displacement),
+                        val
+                        );
+                }
+                else if (W == 1){
+                    val = val + (data[i++] << 8);
+                    printf("mov [%s %c %d], word %d \n",
+                        get_effective_address(R_M),
+                        get_sign_displacement(displacement >= 0),
+                        abs(displacement),
+                        val
+                        );
+                }
+
+            }
+            else{
+                fprintf(stderr, "OPCODE = %d not implemented!\n", OPCODE);
+                exit(EXIT_FAILURE);
+            }
         }
+        // else if(OPCODE == 0b1100){
+
+        // }
         else{
-            fprintf(stderr, "OPCODE=%d not implemented!\n", OPCODE);
+            fprintf(stderr, "Left = %d not implemented!\n",Left);
             exit(EXIT_FAILURE);
         }
     }
@@ -129,7 +188,6 @@ void disasm(uint8_t* data, size_t size){
 
 int main(int argc, char **argv){
     int i = 0;
-
     size_t size;
     uint8_t* data = read_file(argv[1], &size);
     for(i = 0;i<size;i++){

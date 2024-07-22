@@ -21,14 +21,14 @@
 ;10001001
 ;11000101
 bits 16
-mov cx, bx; OPCODE: 8, D: 0, W: 1, MOD 3, REG 3, R_M 1 
-mov ch, ah; OPCODE: 8, D: 0, W: 0, MOD 3, REG 4, R_M 5 
-mov dx, bx; OPCODE: 8, D: 0, W: 1, MOD 3, REG 3, R_M 2 
-mov si, bx; OPCODE: 8, D: 0, W: 1, MOD 3, REG 3, R_M 6 
-mov bx, di; OPCODE: 8, D: 0, W: 1, MOD 3, REG 7, R_M 3 
-mov al, cl; OPCODE: 8, D: 0, W: 0, MOD 3, REG 1, R_M 0 
-mov ch, ch; OPCODE: 8, D: 0, W: 0, MOD 3, REG 5, R_M 5 
-mov bx, ax; OPCODE: 8, D: 0, W: 1, MOD 3, REG 0, R_M 3 
-mov bx, si; OPCODE: 8, D: 0, W: 1, MOD 3, REG 6, R_M 3 
-mov sp, di; OPCODE: 8, D: 0, W: 1, MOD 3, REG 7, R_M 4 
-mov bp, ax; OPCODE: 8, D: 0, W: 1, MOD 3, REG 0, R_M 5 
+mov cx, bx; OPCODE: 34, D: 0, W: 1, MOD 3, REG 3, R_M 1 
+mov ch, ah; OPCODE: 34, D: 0, W: 0, MOD 3, REG 4, R_M 5 
+mov dx, bx; OPCODE: 34, D: 0, W: 1, MOD 3, REG 3, R_M 2 
+mov si, bx; OPCODE: 34, D: 0, W: 1, MOD 3, REG 3, R_M 6 
+mov bx, di; OPCODE: 34, D: 0, W: 1, MOD 3, REG 7, R_M 3 
+mov al, cl; OPCODE: 34, D: 0, W: 0, MOD 3, REG 1, R_M 0 
+mov ch, ch; OPCODE: 34, D: 0, W: 0, MOD 3, REG 5, R_M 5 
+mov bx, ax; OPCODE: 34, D: 0, W: 1, MOD 3, REG 0, R_M 3 
+mov bx, si; OPCODE: 34, D: 0, W: 1, MOD 3, REG 6, R_M 3 
+mov sp, di; OPCODE: 34, D: 0, W: 1, MOD 3, REG 7, R_M 4 
+mov bp, ax; OPCODE: 34, D: 0, W: 1, MOD 3, REG 0, R_M 5 
