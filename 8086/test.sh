@@ -1,7 +1,10 @@
 set -e
 make clean
 make
-trials="listing_0037_single_register_mov listing_0038_many_register_mov listing_0039_more_movs"
+trials="listing_0037_single_register_mov \
+listing_0038_many_register_mov \
+listing_0039_more_movs"
+# listing_0041_add_sub_cmp_jnz"
 # trial="listing_0038_many_register_mov"
 for trial in $trials ; do
     echo

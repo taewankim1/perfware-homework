@@ -40,19 +40,19 @@
 ;01101110
 ;00000000
 bits 16
-mov si, bx; OPCODE: 34, D: 0, W: 1, MOD 3, REG 3, R_M 6 
-mov dh, al; OPCODE: 34, D: 0, W: 0, MOD 3, REG 0, R_M 6 
-mov cl, 12; OPCODE: 44, W: 0, REG 1 
-mov ch, 244; OPCODE: 45, W: 0, REG 5 
-mov cx, 12; OPCODE: 46, W: 1, REG 1 
-mov cx, 65524; OPCODE: 46, W: 1, REG 1 
-mov dx, 3948; OPCODE: 46, W: 1, REG 2 
-mov dx, 61588; OPCODE: 46, W: 1, REG 2 
-mov al, [bx + si]; OPCODE: 34, D: 1, W: 0, MOD 0, REG 0, R_M 0 
-mov bx, [bp + di]; OPCODE: 34, D: 1, W: 1, MOD 0, REG 3, R_M 3 
-mov dx, [bp + 0]; OPCODE: 34, D: 1, W: 1, MOD 1, REG 2, R_M 6 
-mov ah, [bx + si + 4]; OPCODE: 34, D: 1, W: 0, MOD 1, REG 4, R_M 0 
-mov al, [bx + si + 4999]; OPCODE: 34, D: 1, W: 0, MOD 2, REG 0, R_M 0 
-mov [bx + di], cx; OPCODE: 34, D: 0, W: 1, MOD 0, REG 1, R_M 1 
-mov [bp + si], cl; OPCODE: 34, D: 0, W: 0, MOD 0, REG 1, R_M 2 
-mov [bp + 0], ch; OPCODE: 34, D: 0, W: 0, MOD 1, REG 5, R_M 6 
+mov si, bx 
+mov dh, al 
+mov cl, 12
+mov ch, 244
+mov cx, 12
+mov cx, 65524
+mov dx, 3948
+mov dx, 61588
+mov al, [bx + si + 0]
+mov bx, [bp + di + 0]
+mov dx, [bp + 0]
+mov ah, [bx + si + 4]
+mov al, [bx + si + 4999]
+mov [bx + di + 0], cx
+mov [bp + si + 0], cl
+mov [bp + 0], ch
