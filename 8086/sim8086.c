@@ -3,7 +3,37 @@
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include "sim8086.h"
+
+#define NUM_REGISTERS 8
+bool execution = false;
+uint16_t registers[NUM_REGISTERS];
+const char* reg_byte[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
+const char* reg_word[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
+
+void print_registers(void) {
+    printf("\n");
+    printf("Final registers:\n");
+    printf("        %s: 0x%04X (%d)\n", reg_word[0], registers[0], registers[0]);
+    printf("        %s: 0x%04X (%d)\n", reg_word[3], registers[3], registers[3]);
+    printf("        %s: 0x%04X (%d)\n", reg_word[1], registers[1], registers[1]);
+    printf("        %s: 0x%04X (%d)\n", reg_word[2], registers[2], registers[2]);
+    for (int i=4;i<NUM_REGISTERS;i++){
+        printf("        %s: 0x%04X (%d)\n", reg_word[i], registers[i], registers[i]);
+    }
+}
+
+void exec_imm_tofrom_reg(uint8_t REG, uint16_t val){
+    printf("; %s:0x%04X->0x%04X\n",reg_word[REG],registers[REG],val);
+    registers[REG] = val;
+}
+
+void exec_reg_to_reg(uint8_t dest, uint8_t src){
+    printf("; %s:0x%04X->0x%04X\n",reg_word[dest],registers[dest],registers[src]);
+    registers[dest] = registers[src];
+}
+
 
 static uint8_t* read_file(const char* path, size_t* out_size){
     FILE* f = fopen(path, "rb"); // "rb" <- reading it in binary mode
@@ -34,8 +64,6 @@ void print_binary(unsigned int num) {
 }
 
 const char* get_REG(uint8_t W, uint8_t REG){
-    const char* reg_byte[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
-	const char* reg_word[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
     if (W == 0){
         return reg_byte[REG];
     }
@@ -82,6 +110,13 @@ const int16_t get_displacement(uint8_t* data, uint8_t MOD, int* iptr){
 void print_reg_to_reg(char* operation,uint8_t D,uint8_t W,uint8_t R_M,uint8_t REG){
     const char* source;
     const char* destination;
+    uint8_t src = REG;
+    uint8_t dest = R_M;
+    if (D != 0){
+        uint8_t tmp = src;
+        src = dest;
+        dest = tmp;
+    }
 
     if (D == 0){
         destination = get_REG(W,R_M);
@@ -91,8 +126,10 @@ void print_reg_to_reg(char* operation,uint8_t D,uint8_t W,uint8_t R_M,uint8_t RE
         source = get_REG(W,R_M);
         destination = get_REG(W,REG);
     }
-    printf("%s %s, %s \n",
+    printf("%s %s, %s",
     operation,destination, source);
+    if (execution) exec_reg_to_reg(dest,src);
+    else printf("\n");
 }
 void print_reg_memory_to_from_reg(char* operation,int16_t displacement,uint8_t D,uint8_t W,uint8_t R_M,uint8_t REG){
     if (D == 1){
@@ -144,9 +181,11 @@ void disasm_imm_tofrom_reg(uint8_t Left,char* operation,uint8_t* data,int* iptr)
     if (W  == 1){
         val = val + (data[(*iptr)++] << 8);
     }
-    printf("%s %s, %d\n",
+    printf("%s %s, %d",
         operation,
         get_REG(W,REG), val);
+    if (execution) exec_imm_tofrom_reg(REG, val);
+    else printf("\n");
 }
 void disasm_imm_tofrom_regmem(uint8_t Left,char* operation,uint8_t* data,int* iptr){
     uint8_t W = Left & 1;
@@ -172,25 +211,7 @@ void disasm_imm_tofrom_regmem(uint8_t Left,char* operation,uint8_t* data,int* ip
         val
         );
 }
-// void disasm_arithmetic_regmem_tofrom_either(uint8_t Left,char* operation,uint8_t* data,int* iptr){
-//     uint8_t Right = data[(*iptr)++];
-//     uint8_t W = Left & 1;
-//     uint8_t D = (Left >> 1) & 1;
-//     uint8_t R_M = Right & 7;
-//     uint8_t REG = (Right >> 3) & 7;
-//     uint8_t MOD = (Right >> 6) & 3;
-//     if (MOD == 3){
-//         print_reg_to_reg(operation,D,W,R_M,REG);
-//     }
-//     else if (MOD == 0 || MOD == 1 || MOD == 2){
-//         int16_t displacement = get_displacement(data, MOD, iptr);
-//         print_reg_memory_to_from_reg(operation,displacement,D,W,R_M,REG);
-//     }
-//     else{
-//         fprintf(stderr, "MOD = %d not implemented!\n",MOD);
-//         exit(EXIT_FAILURE);
-//     }
-// }
+
 void disasm_arithmetic_imm_tofrom_regmem(uint8_t Left,uint8_t* data,int* iptr){
     uint8_t SW = Left & 3;
     uint8_t W = Left & 1;
@@ -370,14 +391,36 @@ void disasm(uint8_t* data, size_t size){
 }
 
 int main(int argc, char **argv){
-    int i = 0;
-    size_t size;
-    uint8_t* data = read_file(argv[1], &size);
-    for(i = 0;i<size;i++){
-        print_binary(data[i]);
+    if (argc == 1){
+        fprintf(stderr, "Put a binary file as an argument\n");
+        return EXIT_FAILURE;
     }
-    printf("bits 16\n");
-    disasm(data, size);
-    free(data);
-    return EXIT_SUCCESS;
+    if (argc == 2){
+        int i = 0;
+        size_t size;
+        uint8_t* data = read_file(argv[1], &size);
+        for(i = 0;i<size;i++){
+            print_binary(data[i]);
+        }
+        printf("bits 16\n");
+        disasm(data, size);
+        free(data);
+        return EXIT_SUCCESS;
+    }
+    if (argc == 3 && !strcmp(argv[1],"-exec")){
+        execution = true;
+        printf("--- test: %s\n",argv[2]);
+        int i = 0;
+        size_t size;
+        uint8_t* data = read_file(argv[2], &size);
+        for(i = 0;i<size;i++){
+            print_binary(data[i]);
+        }
+        printf("bits 16\n");
+        disasm(data, size);
+        free(data);
+        print_registers();
+        return EXIT_SUCCESS;
+    }
+    return EXIT_FAILURE;
 }
