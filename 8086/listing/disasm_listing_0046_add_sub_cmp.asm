@@ -29,5 +29,5 @@ sub bx, cx
 mov sp, 998
 mov bp, 999
 cmp bp, sp
-add bp, 1027; MOD: 3
-sub bp, 2026; MOD: 3
+add bp, 1027;
+sub bp, 2026;

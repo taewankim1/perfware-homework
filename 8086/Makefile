@@ -1,5 +1,6 @@
 .PHONY: all clean
 
+CC = gcc
 CFLAGS += -std=c17
 # CFLAGS += -O0 -g
 CFLAGS += -g
