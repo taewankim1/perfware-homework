@@ -9,7 +9,7 @@ uint8_t memory[1024*1024];
 int ip = 0; // instruction pointer
 const char* reg_byte[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
 const char* reg_word[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
-const char* address[] = { "bx + si", "bx + di", "bp + si", "bp + di",
+const char* address[] = { "bx+si", "bx+di", "bp+si", "bp+di",
         "si", "di", "bp", "bx" };
 
 const char* get_REG(uint8_t W, uint8_t REG){
@@ -20,7 +20,6 @@ const char* get_REG(uint8_t W, uint8_t REG){
         return reg_word[REG];
     }
 }
-
 
 const char* get_effective_address(uint8_t R_M){
     return address[R_M];

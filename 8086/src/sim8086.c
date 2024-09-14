@@ -92,6 +92,19 @@ void mov_reg_tofrom_direct(uint8_t D, uint8_t REG,int16_t displacement){
     }
 }
 
+void mov_reg_tofrom_mem(uint8_t D,uint8_t REG,uint8_t R_M){
+    uint32_t m_address = get_effective_address_value(R_M);
+    if (D == 1){
+        printf("; %s:0x%04X->0x%04X",reg_word[REG],registers[REG],memory[m_address]);
+        registers[REG] = memory[m_address];
+    }
+    else if (D == 0){
+        printf(";");
+        uint16_t reg = registers[REG];
+        memory[m_address] = reg;
+    }
+}
+
 void check_flag(uint16_t result){
     uint8_t old_flags = flags;
     flags = 0;
@@ -210,7 +223,7 @@ void print_reg_memory_to_from_reg(char* operation,
     int16_t displacement,uint8_t D,uint8_t W,uint8_t R_M,uint8_t REG,int ip_old){
 
     if (D == 1){
-        printf("%s %s, [%s%+d]\n",
+        printf("%s %s, [%s%+d]",
             operation,
             get_REG(W,REG),
             get_effective_address(R_M),
@@ -218,7 +231,7 @@ void print_reg_memory_to_from_reg(char* operation,
             );
     }
     else if(D == 0){
-        printf("%s [%s%+d], %s\n",
+        printf("%s [%s%+d], %s",
             operation,
             get_effective_address(R_M),
             displacement,
@@ -228,6 +241,14 @@ void print_reg_memory_to_from_reg(char* operation,
         fprintf(stderr, "D = %d not implemented!\n",D);
         exit(EXIT_FAILURE);
     }
+    if (execution){
+        if (!strcmp(operation,"mov")) mov_reg_tofrom_mem(D,REG,R_M);
+        // else if (!strcmp(operation,"add")) add_reg_to_reg(dest,src);
+        // else if (!strcmp(operation,"sub")) sub_reg_to_reg(dest,src);
+        // else if (!strcmp(operation,"cmp")) cmp_reg_to_reg(dest,src);
+        print_ip(ip_old);
+    }     
+    printf("\n");
 }
 
 void print_reg_tofrom_direct(char* operation,int16_t displacement,uint8_t D,uint8_t W,uint8_t R_M,uint8_t REG,int ip_old){
