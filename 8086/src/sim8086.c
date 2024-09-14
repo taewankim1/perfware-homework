@@ -138,6 +138,21 @@ void add_imm_tofrom_reg(uint8_t REG, uint16_t val){
     check_flag(result);
 }
 
+void add_reg_tofrom_mem(uint8_t D,uint8_t REG,uint8_t R_M){
+    uint32_t m_address = get_effective_address_value(R_M);
+    if (D == 1){
+        uint16_t result = registers[REG] + memory[m_address];
+        printf("; %s:0x%04X->0x%04X",reg_word[REG],registers[REG],result);
+        registers[REG] = result;
+        check_flag(result);
+    }
+    else if (D == 0){
+        printf(";");
+        uint16_t result = registers[REG] + memory[m_address];
+        memory[m_address] = result;
+    }
+}
+
 void sub_reg_to_reg(uint8_t dest, uint8_t src){
     uint16_t result = registers[dest] - registers[src];
     printf("; %s:0x%04X->0x%04X",reg_word[dest],registers[dest],result);
@@ -243,9 +258,9 @@ void print_reg_memory_to_from_reg(char* operation,
     }
     if (execution){
         if (!strcmp(operation,"mov")) mov_reg_tofrom_mem(D,REG,R_M);
-        // else if (!strcmp(operation,"add")) add_reg_to_reg(dest,src);
-        // else if (!strcmp(operation,"sub")) sub_reg_to_reg(dest,src);
-        // else if (!strcmp(operation,"cmp")) cmp_reg_to_reg(dest,src);
+        else if (!strcmp(operation,"add")) add_reg_tofrom_mem(D,REG,R_M);
+        else if (!strcmp(operation,"sub")) printf("not implemented yet");
+        else if (!strcmp(operation,"cmp")) printf("not implemented yet");
         print_ip(ip_old);
     }     
     printf("\n");
