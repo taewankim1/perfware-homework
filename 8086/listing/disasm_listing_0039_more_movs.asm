@@ -48,11 +48,11 @@ mov cx, 12
 mov cx, 65524
 mov dx, 3948
 mov dx, 61588
-mov al, [bx + si + 0]
-mov bx, [bp + di + 0]
-mov dx, [bp + 0]
-mov ah, [bx + si + 4]
-mov al, [bx + si + 4999]
-mov [bx + di + 0], cx
-mov [bp + si + 0], cl
-mov [bp + 0], ch
+mov al, [bx + si+0]
+mov bx, [bp + di+0]
+mov dx, [bp+0]
+mov ah, [bx + si+4]
+mov al, [bx + si+4999]
+mov [bx + di+0], cx
+mov [bp + si+0], cl
+mov [bp+0], ch

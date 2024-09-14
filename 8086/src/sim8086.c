@@ -6,15 +6,6 @@
 #include <stdbool.h>
 #include "sim8086.h"
 
-#define NUM_REGISTERS 8
-bool execution = false;
-uint8_t flags = 0; // 0,0,0,0,0,0,sign,zero
-
-uint16_t registers[NUM_REGISTERS];
-int ip = 0; // instruction pointer
-const char* reg_byte[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
-const char* reg_word[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
-
 static uint8_t* read_file(const char* path, size_t* out_size){
     FILE* f = fopen(path, "rb"); // "rb" <- reading it in binary mode
     assert(f != NULL);
@@ -57,10 +48,6 @@ void print_registers(void) {
     printf("\n");
     printf("Final registers:\n");
     int list_reg[8] = {0,3,1,2,4,5,6,7};
-    // printf("        %s: 0x%04X (%d)\n", reg_word[0], registers[0], registers[0]);
-    // printf("        %s: 0x%04X (%d)\n", reg_word[3], registers[3], registers[3]);
-    // printf("        %s: 0x%04X (%d)\n", reg_word[1], registers[1], registers[1]);
-    // printf("        %s: 0x%04X (%d)\n", reg_word[2], registers[2], registers[2]);
     for (int i=0;i<NUM_REGISTERS;i++){
         int idx = list_reg[i];
         if (registers[idx] != 0){
@@ -78,9 +65,31 @@ void mov_imm_tofrom_reg(uint8_t REG, uint16_t val){
     registers[REG] = val;
 }
 
+void mov_imm_to_regmem(uint8_t R_M, uint16_t displacement, uint16_t val){
+    uint32_t reg = get_effective_address_value(R_M);
+    printf(";");
+    memory[reg + displacement] = val;
+}
+
+void mov_imm_to_direct_mem(uint16_t address, uint16_t val){
+    memory[address] = val;
+}
+
 void mov_reg_to_reg(uint8_t dest, uint8_t src){
     printf("; %s:0x%04X->0x%04X",reg_word[dest],registers[dest],registers[src]);
     registers[dest] = registers[src];
+}
+
+void mov_reg_tofrom_direct(uint8_t D, uint8_t REG,int16_t displacement){
+    if (D == 1){
+        printf("; %s:0x%04X->0x%04X",reg_word[REG],registers[REG],memory[displacement]);
+        registers[REG] = memory[displacement];
+    }
+    else if (D == 0){
+        printf(";");
+        uint16_t reg = registers[REG];
+        memory[displacement] = reg;
+    }
 }
 
 void check_flag(uint16_t result){
@@ -142,21 +151,6 @@ void cmp_imm_tofrom_reg(uint8_t REG, uint16_t val){
     check_flag(result);
 }
 
-const char* get_REG(uint8_t W, uint8_t REG){
-    if (W == 0){
-        return reg_byte[REG];
-    }
-    else{
-        return reg_word[REG];
-    }
-}
-
-const char* get_effective_address(uint8_t R_M){
-    const char* address[] = { "bx + si", "bx + di", "bp + si", "bp + di",
-        "si", "di", "bp", "bx" };
-    return address[R_M];
-}
-
 void get_arithmetic(uint8_t MOD, char* ans){
     if (MOD == 0){
         strcpy(ans,"add");
@@ -167,11 +161,6 @@ void get_arithmetic(uint8_t MOD, char* ans){
     else if (MOD == 7){
         strcpy(ans,"cmp");
     }
-}
-
-char get_sign_displacement(int test){
-    if (test) return '+';
-    else return '-';
 }
 
 const int16_t get_displacement(uint8_t* data, uint8_t MOD){
@@ -216,28 +205,58 @@ void print_reg_to_reg(char* operation,uint8_t D,uint8_t W,uint8_t R_M,uint8_t RE
     }     
     printf("\n");
 }
-void print_reg_memory_to_from_reg(char* operation,int16_t displacement,uint8_t D,uint8_t W,uint8_t R_M,uint8_t REG){
+
+void print_reg_memory_to_from_reg(char* operation,
+    int16_t displacement,uint8_t D,uint8_t W,uint8_t R_M,uint8_t REG,int ip_old){
+
     if (D == 1){
-        printf("%s %s, [%s %c %d]\n",
+        printf("%s %s, [%s%+d]\n",
             operation,
             get_REG(W,REG),
             get_effective_address(R_M),
-            get_sign_displacement(displacement >= 0),
-            abs(displacement)
+            displacement
             );
     }
     else if(D == 0){
-        printf("%s [%s %c %d], %s\n",
+        printf("%s [%s%+d], %s\n",
             operation,
             get_effective_address(R_M),
-            get_sign_displacement(displacement >= 0),
-            abs(displacement),
+            displacement,
             get_REG(W,REG));
     }
     else{
         fprintf(stderr, "D = %d not implemented!\n",D);
         exit(EXIT_FAILURE);
     }
+}
+
+void print_reg_tofrom_direct(char* operation,int16_t displacement,uint8_t D,uint8_t W,uint8_t R_M,uint8_t REG,int ip_old){
+    const char* reg_name = get_REG(W,REG);
+    if (D == 1){
+        printf("%s %s, [%+d]",
+            operation,
+            reg_name,
+            displacement
+            );
+    }
+    else if(D == 0){
+        printf("%s [%+d], %s",
+            operation,
+            displacement,
+            reg_name);
+    }
+    else{
+        fprintf(stderr, "D = %d not implemented!\n",D);
+        exit(EXIT_FAILURE);
+    }
+    if (execution){
+        if (!strcmp(operation,"mov")) mov_reg_tofrom_direct(D,REG,displacement);
+        // else if (!strcmp(operation,"add")) add_reg_to_reg(dest,src);
+        // else if (!strcmp(operation,"sub")) sub_reg_to_reg(dest,src);
+        // else if (!strcmp(operation,"cmp")) cmp_reg_to_reg(dest,src);
+        print_ip(ip_old);
+    }     
+    printf("\n");
 }
 
 void disasm_regmem_tofrom_either(uint8_t Left,char* operation,uint8_t* data){
@@ -251,16 +270,21 @@ void disasm_regmem_tofrom_either(uint8_t Left,char* operation,uint8_t* data){
     if (MOD == 3){
         print_reg_to_reg(operation,D,W,R_M,REG,ip_old);
     }
+    else if (MOD == 0 && R_M == 6){ // direct address
+        int16_t displacement = get_displacement(data, 2);
+        print_reg_tofrom_direct(operation,displacement,D,W,R_M,REG,ip_old);
+    }
     else if (MOD == 0 || MOD == 1 || MOD == 2){
         int16_t displacement = get_displacement(data, MOD);
-        print_reg_memory_to_from_reg(operation,displacement,D,W,R_M,REG);
+        print_reg_memory_to_from_reg(operation,displacement,D,W,R_M,REG,ip_old);
     }
     else{
         fprintf(stderr, "MOD = %d not implemented!\n",MOD);
         exit(EXIT_FAILURE);
     }
 }
-void disasm_imm_tofrom_reg(uint8_t Left,char* operation,uint8_t* data){
+
+void disasm_mov_imm_tofrom_reg(uint8_t Left,char* operation,uint8_t* data){
     int ip_old = ip - 1;
     uint8_t W = (Left >> 3) & 1;
     uint8_t REG = Left & 7;
@@ -277,12 +301,19 @@ void disasm_imm_tofrom_reg(uint8_t Left,char* operation,uint8_t* data){
     }     
     printf("\n");
 }
-void disasm_imm_tofrom_regmem(uint8_t Left,char* operation,uint8_t* data){
+void disasm_mov_imm_tofrom_regmem(uint8_t Left,char* operation,uint8_t* data){
+    int ip_old = ip - 1;
     uint8_t W = Left & 1;
     uint8_t Right = data[ip++];
     uint8_t MOD = (Right >> 6) & 3;
     uint8_t R_M = Right & 7;
-    int16_t displacement = get_displacement(data, MOD);
+    int16_t displacement;
+    if (MOD == 0 && R_M == 6){ // Direct address
+        displacement = get_displacement(data, 2);
+    }
+    else {
+        displacement = get_displacement(data, MOD);
+    }
     uint16_t val = data[ip++];
     char explicit_size[5];
     if (W == 0){
@@ -292,14 +323,32 @@ void disasm_imm_tofrom_regmem(uint8_t Left,char* operation,uint8_t* data){
         val = val + (data[ip++] << 8);
         strcpy(explicit_size,"word");
     }
-    printf("%s [%s %c %d], %s %d \n",
-        operation,
-        get_effective_address(R_M),
-        get_sign_displacement(displacement >= 0),
-        abs(displacement),
-        explicit_size,
-        val
-        );
+    if (MOD == 0 && R_M == 6){
+        printf("%s %s [%+d], %d",
+            operation,
+            explicit_size,
+            displacement,
+            val
+            );
+        if (execution){
+            if (!strcmp(operation,"mov")) mov_imm_to_direct_mem(displacement, val);
+            print_ip(ip_old);
+        }     
+    }
+    else{
+        printf("%s [%s%+d], %s %d",
+            operation,
+            get_effective_address(R_M),
+            displacement,
+            explicit_size,
+            val
+            );
+        if (execution){
+            if (!strcmp(operation,"mov")) mov_imm_to_regmem(R_M,displacement,val);
+            print_ip(ip_old);
+        }     
+    }
+    printf("\n");
 }
 
 void disasm_arithmetic_imm_tofrom_regmem(uint8_t Left,uint8_t* data){
@@ -342,12 +391,11 @@ void disasm_arithmetic_imm_tofrom_regmem(uint8_t Left,uint8_t* data){
             if (SW == 1){
                 val = val + (data[ip++] << 8);
             }
-            printf("%s %s [%c %d], %d; R_M: %d, MOD: %d \n",
+            printf("%s %s [%+d], %d; R_M: %d, MOD: %d \n",
                 operation,
                 explicit_size,
                 // get_effective_address(R_M),
-                get_sign_displacement(displacement >= 0),
-                abs(displacement),
+                displacement,
                 val,
                 R_M,
                 MOD
@@ -359,12 +407,11 @@ void disasm_arithmetic_imm_tofrom_regmem(uint8_t Left,uint8_t* data){
             if (SW == 1){
                 val = val + (data[ip++] << 8);
             }
-            printf("%s %s [%s %c %d], %d; R_M: %d, MOD: %d \n",
+            printf("%s %s [%s%+d], %d; R_M: %d, MOD: %d \n",
                 operation,
                 explicit_size,
                 get_effective_address(R_M),
-                get_sign_displacement(displacement >= 0),
-                abs(displacement),
+                displacement,
                 val,
                 R_M,
                 MOD
@@ -472,14 +519,6 @@ void disasm_loop(uint8_t Left, uint8_t* data){
 }
 
 void disasm(uint8_t* data, size_t size){
-    // size_t len_instruction = size / 2;
-    uint8_t D;
-    uint8_t W;
-    uint8_t MOD;
-    uint8_t REG;
-    uint8_t R_M;
-    const char* source;
-    const char* destination;
     ip = 0;
     while (ip < size){
         uint8_t Left = data[ip++];
@@ -489,11 +528,11 @@ void disasm(uint8_t* data, size_t size){
         }
         else if((Left >> 4) == 0b1011){
             char operation[] = "mov";
-            disasm_imm_tofrom_reg(Left,operation,data);
+            disasm_mov_imm_tofrom_reg(Left,operation,data);
         }
         else if(Left >> 1 == 0b1100011){
             char operation[] = "mov";
-            disasm_imm_tofrom_regmem(Left,operation,data);
+            disasm_mov_imm_tofrom_regmem(Left,operation,data);
         }
         else if(Left >> 6 == 0b00 && ((Left >> 2) & 1) == 0){
             uint8_t OPCODE = (Left >> 3) & 7;
