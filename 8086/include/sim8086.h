@@ -1,11 +1,13 @@
 #pragma once
 
 #define NUM_REGISTERS 8
+#define MEMORY_SIZE 1024*1024
 bool execution = false;
+bool dump = false;
 uint8_t flags = 0; // 0,0,0,0,0,0,sign,zero
 
 uint16_t registers[NUM_REGISTERS];
-uint8_t memory[1024*1024];
+uint8_t memory[MEMORY_SIZE];
 int ip = 0; // instruction pointer
 const char* reg_byte[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
 const char* reg_word[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };

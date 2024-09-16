@@ -21,6 +21,16 @@ static uint8_t* read_file(const char* path, size_t* out_size){
     return data;
 }
 
+void dump_memory(){
+    FILE *f = fopen("output.data","wb");
+    assert(f!= NULL);
+    if (fwrite(memory, sizeof(uint8_t), MEMORY_SIZE, f) != MEMORY_SIZE)
+    {
+        fprintf(stderr, "ERROR writing to file");
+    }
+    fclose(f);
+}
+
 void print_binary(unsigned int num) {
     // Get the number of bits in an unsigned int
     int bits_to_print = 8;
@@ -65,10 +75,11 @@ void mov_imm_tofrom_reg(uint8_t REG, uint16_t val){
     registers[REG] = val;
 }
 
-void mov_imm_to_regmem(uint8_t R_M, uint16_t displacement, uint16_t val){
+void mov_imm_to_regmem(uint8_t R_M, uint16_t displacement, uint8_t val){
     uint32_t reg = get_effective_address_value(R_M);
     printf(";");
     memory[reg + displacement] = val;
+    printf("displacement %d",displacement);
 }
 
 void mov_imm_to_direct_mem(uint16_t address, uint16_t val){
@@ -92,8 +103,8 @@ void mov_reg_tofrom_direct(uint8_t D, uint8_t REG,int16_t displacement){
     }
 }
 
-void mov_reg_tofrom_mem(uint8_t D,uint8_t REG,uint8_t R_M){
-    uint32_t m_address = get_effective_address_value(R_M);
+void mov_reg_tofrom_mem(uint8_t D,int16_t displacement,uint8_t REG,uint8_t R_M){
+    uint32_t m_address = get_effective_address_value(R_M) + displacement;
     if (D == 1){
         printf("; %s:0x%04X->0x%04X",reg_word[REG],registers[REG],memory[m_address]);
         registers[REG] = memory[m_address];
@@ -138,8 +149,8 @@ void add_imm_tofrom_reg(uint8_t REG, uint16_t val){
     check_flag(result);
 }
 
-void add_reg_tofrom_mem(uint8_t D,uint8_t REG,uint8_t R_M){
-    uint32_t m_address = get_effective_address_value(R_M);
+void add_reg_tofrom_mem(uint8_t D,int16_t displacement,uint8_t REG,uint8_t R_M){
+    uint32_t m_address = get_effective_address_value(R_M) + displacement;
     if (D == 1){
         uint16_t result = registers[REG] + memory[m_address];
         printf("; %s:0x%04X->0x%04X",reg_word[REG],registers[REG],result);
@@ -257,8 +268,8 @@ void print_reg_memory_to_from_reg(char* operation,
         exit(EXIT_FAILURE);
     }
     if (execution){
-        if (!strcmp(operation,"mov")) mov_reg_tofrom_mem(D,REG,R_M);
-        else if (!strcmp(operation,"add")) add_reg_tofrom_mem(D,REG,R_M);
+        if (!strcmp(operation,"mov")) mov_reg_tofrom_mem(D,displacement,REG,R_M);
+        else if (!strcmp(operation,"add")) add_reg_tofrom_mem(D,displacement,REG,R_M);
         else if (!strcmp(operation,"sub")) printf("not implemented yet");
         else if (!strcmp(operation,"cmp")) printf("not implemented yet");
         print_ip(ip_old);
@@ -510,27 +521,29 @@ void disasm_jump(uint8_t Left, uint8_t* data){
     printf("%s &%+d;",
         jump_type,(int8_t) data[ip++] + 2
         );
-    if (!strcmp("jnz",jump_type)){
-        if ( (flags & 1) == 0 ){
-            ip = ip + ((int8_t) data[ip-1]);
+    if (execution) {
+        if (!strcmp("jnz",jump_type)){
+            if ( (flags & 1) == 0 ){
+                ip = ip + ((int8_t) data[ip-1]);
+            }
         }
-    }
-    else if (!strcmp("je",jump_type)){
-        if ( (flags & 1) == 1 ){
-            ip = ip + ((int8_t) data[ip-1]);
+        else if (!strcmp("je",jump_type)){
+            if ( (flags & 1) == 1 ){
+                ip = ip + ((int8_t) data[ip-1]);
+            }
         }
-    }
-    else if (!strcmp("jb",jump_type)){
-        if ( (flags & 0x10) == 0x10 ){
-            ip = ip + ((int8_t) data[ip-1]);
+        else if (!strcmp("jb",jump_type)){
+            if ( (flags & 0x10) == 0x10 ){
+                ip = ip + ((int8_t) data[ip-1]);
+            }
         }
+        // else if (!strcmp("jp",jump_type)){
+        //     if ( (flags & 0x10) == 0x10 ){
+        //         ip = ip + ((int8_t) data[ip-1]);
+        //     }
+        // }
+        print_ip(ip_old);
     }
-    // else if (!strcmp("jp",jump_type)){
-    //     if ( (flags & 0x10) == 0x10 ){
-    //         ip = ip + ((int8_t) data[ip-1]);
-    //     }
-    // }
-    print_ip(ip_old);
     printf("\n");
 }
 
@@ -544,13 +557,15 @@ void disasm_loop(uint8_t Left, uint8_t* data){
     printf("%s &%+d;",
         loop_type,(int8_t) data[ip++] + 2
         );
-    if (!strcmp("loopnz",loop_type)){
-        if ( (flags & 1) == 0 ){
-            ip = ip + ((int8_t) data[ip-1]);
-            sub_imm_tofrom_reg(1,1);
+    if (execution){
+        if (!strcmp("loopnz",loop_type)){
+            if ( (flags & 1) == 0 ){
+                ip = ip + ((int8_t) data[ip-1]);
+                sub_imm_tofrom_reg(1,1);
+            }
         }
+        print_ip(ip_old);
     }
-    print_ip(ip_old);
     printf("\n");
 }
 
@@ -600,32 +615,31 @@ int main(int argc, char **argv){
         fprintf(stderr, "Put a binary file as an argument\n");
         return EXIT_FAILURE;
     }
-    if (argc == 2){
-        int i = 0;
-        size_t size;
-        uint8_t* data = read_file(argv[1], &size);
-        for(i = 0;i<size;i++){
-            print_binary(data[i]);
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-exec") == 0) {
+            execution = true;
         }
-        printf("bits 16\n");
-        disasm(data, size);
-        free(data);
-        return EXIT_SUCCESS;
+        if (strcmp(argv[i], "-dump") == 0) {
+            dump = true;
+        }
     }
-    if (argc == 3 && !strcmp(argv[1],"-exec")){
-        execution = true;
-        printf("--- test: %s\n",argv[2]);
-        int i = 0;
-        size_t size;
-        uint8_t* data = read_file(argv[2], &size);
-        for(i = 0;i<size;i++){
-            print_binary(data[i]);
-        }
-        printf("bits 16\n");
-        disasm(data, size);
-        free(data);
+    if (execution){
+        printf("--- test: %s\n",argv[argc-1]);
+    }
+    int i = 0;
+    size_t size;
+    uint8_t* data = read_file(argv[argc-1], &size);
+    for(i = 0;i<size;i++){
+        print_binary(data[i]);
+    }
+    printf("bits 16\n");
+    disasm(data, size);
+    free(data);
+    if (execution){
         print_registers();
-        return EXIT_SUCCESS;
     }
-    return EXIT_FAILURE;
+    if (dump){
+        dump_memory();
+    }
+    return EXIT_SUCCESS;
 }
