@@ -2,7 +2,7 @@ set -e
 make clean
 rm -f ./listing/disasm_*
 make
-trials="listing_0037_single_register_mov listing_0038_many_register_mov listing_0039_more_movs listing_0043_immediate_movs listing_0044_register_movs listing_0046_add_sub_cmp listing_0048_ip_register listing_0051_memory_mov"
+trials="listing_0037_single_register_mov listing_0038_many_register_mov listing_0039_more_movs listing_0043_immediate_movs listing_0044_register_movs listing_0046_add_sub_cmp listing_0048_ip_register listing_0051_memory_mov listing_0056_estimating_cycles listing_0057_challenge_cycles"
 # listing_0041_add_sub_cmp_jnz"
 # trial="listing_0038_many_register_mov"
 for trial in $trials ; do

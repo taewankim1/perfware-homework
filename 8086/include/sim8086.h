@@ -4,7 +4,10 @@
 #define MEMORY_SIZE 1024*1024
 bool execution = false;
 bool dump = false;
+bool showclocks = false;
 uint8_t flags = 0; // 0,0,0,0,0,0,sign,zero
+uint32_t clock_count = 0;
+
 
 uint16_t registers[NUM_REGISTERS];
 uint8_t memory[MEMORY_SIZE];

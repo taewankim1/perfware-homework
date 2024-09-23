@@ -190,6 +190,199 @@ void cmp_imm_tofrom_reg(uint8_t REG, uint16_t val){
     check_flag(result);
 }
 
+void clock_mov_reg_to_reg(){
+    clock_count += 2;
+    printf("; Clocks: +2 = %u | ",clock_count);
+}
+
+void clock_mov_imm_tofrom_reg(){
+    clock_count += 4;
+    printf("; Clocks: +4 = %u | ",clock_count);
+}
+
+void clock_mov_reg_tofrom_direct(int displacement){
+    int total_clock = 8;
+    int ea = 6;
+    total_clock += ea;
+    if (displacement % 2 == 0){
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea) | ",total_clock,clock_count,8,ea);
+    }
+    else{
+        total_clock += 4;
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea + %dp) | ",total_clock,clock_count,8,ea,4);
+    }
+}
+
+void clock_mov_reg_from_memory(uint8_t R_M, int displacement){
+    int total_clock = 8;
+    int ea;
+    // total_clock += ea;
+
+    if (displacement == 0){
+        if (R_M == 0 || R_M == 3) ea = 7;
+        else if (R_M == 1 || R_M == 2) ea = 8;
+        else ea = 5;
+    }
+    else{
+        if (R_M == 0 || R_M == 3) ea = 11;
+        else if (R_M == 1 || R_M == 2) ea = 12;
+        else ea = 9;
+    }
+    total_clock += ea;
+    if (displacement % 2 == 0){
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea) | ",total_clock,clock_count,8,ea);
+    }
+    else{
+        total_clock += 4;
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea + %dp) | ",total_clock,clock_count,8,ea,4);
+    }
+}
+
+void clock_mov_reg_to_memory(uint8_t R_M, int displacement){
+    int base = 9;
+    int total_clock = base;
+    int ea;
+    // total_clock += ea;
+
+    if (displacement == 0){
+        if (R_M == 0 || R_M == 3) ea = 7;
+        else if (R_M == 1 || R_M == 2) ea = 8;
+        else ea = 5;
+    }
+    else{
+        if (R_M == 0 || R_M == 3) ea = 11;
+        else if (R_M == 1 || R_M == 2) ea = 12;
+        else ea = 9;
+    }
+    total_clock += ea;
+    if (displacement % 2 == 0){
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea) | ",total_clock,clock_count,base,ea);
+    }
+    else{
+        total_clock += 4;
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea + %dp) | ",total_clock,clock_count,base,ea,4);
+    }
+}
+
+void clock_add_reg_to_reg(){
+    clock_count += 3;
+    printf("; Clocks: +3 = %u | ",clock_count);
+}
+
+void clock_add_imm_tofrom_reg(){
+    clock_count += 4;
+    printf("; Clocks: +4 = %u | ",clock_count);
+}
+
+void clock_add_reg_from_memory(uint8_t R_M, int displacement){
+    int base = 9;
+    int total_clock = base;
+    int ea;
+    // total_clock += ea;
+
+    if (displacement == 0){
+        if (R_M == 0 || R_M == 3) ea = 7;
+        else if (R_M == 1 || R_M == 2) ea = 8;
+        else ea = 5;
+    }
+    else{
+        if (R_M == 0 || R_M == 3) ea = 11;
+        else if (R_M == 1 || R_M == 2) ea = 12;
+        else ea = 9;
+    }
+    total_clock += ea;
+    if (displacement % 2 == 0){
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea) | ",total_clock,clock_count,base,ea);
+    }
+    else{
+        total_clock += 4;
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea + %dp) | ",total_clock,clock_count,base,ea,4);
+    }
+}
+
+void clock_add_reg_to_memory(uint8_t R_M, int displacement){
+    int base = 16;
+    int total_clock = base;
+    int ea;
+    // total_clock += ea;
+
+    if (displacement == 0){
+        if (R_M == 0 || R_M == 3) ea = 7;
+        else if (R_M == 1 || R_M == 2) ea = 8;
+        else ea = 5;
+    }
+    else{
+        if (R_M == 0 || R_M == 3) ea = 11;
+        else if (R_M == 1 || R_M == 2) ea = 12;
+        else ea = 9;
+    }
+    total_clock += ea;
+    if (displacement % 2 == 0){
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea) | ",total_clock,clock_count,base,ea);
+    }
+    else{
+        total_clock += 8;
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea + %dp) | ",total_clock,clock_count,base,ea,8);
+    }
+}
+
+void clock_add_reg_tofrom_direct(int displacement){
+    int base = 9;
+    int total_clock = base;
+    int ea = 6;
+    total_clock += ea;
+    if (displacement % 2 == 0){
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea) | ",total_clock,clock_count,base,ea);
+    }
+    else{
+        total_clock += 4;
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea + %dp) | ",total_clock,clock_count,base,ea,4);
+    }
+}
+
+void clock_add_imm_to_memory(uint8_t R_M, int displacement){
+    int base = 17;
+    int total_clock = base;
+    int ea;
+    // total_clock += ea;
+
+    if (displacement == 0){
+        if (R_M == 0 || R_M == 3) ea = 7;
+        else if (R_M == 1 || R_M == 2) ea = 8;
+        else ea = 5;
+    }
+    else{
+        if (R_M == 0 || R_M == 3) ea = 11;
+        else if (R_M == 1 || R_M == 2) ea = 12;
+        else ea = 9;
+    }
+    total_clock += ea;
+    if (displacement % 2 == 0){
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea) | ",total_clock,clock_count,base,ea);
+    }
+    else{
+        total_clock += 8;
+        clock_count += total_clock;
+        printf("; Clocks: %+d = %u (%d + %dea + %dp) | ",total_clock,clock_count,base,ea,8);
+    }
+}
+
+
+
+
 void get_arithmetic(uint8_t MOD, char* ans){
     if (MOD == 0){
         strcpy(ans,"add");
@@ -235,6 +428,10 @@ void print_reg_to_reg(char* operation,uint8_t D,uint8_t W,uint8_t R_M,uint8_t RE
     }
     printf("%s %s, %s",
     operation,destination, source);
+    if (showclocks){
+        if (!strcmp(operation,"mov")) clock_mov_reg_to_reg();
+        if (!strcmp(operation,"add")) clock_add_reg_to_reg();
+    }
     if (execution){
         if (!strcmp(operation,"mov")) mov_reg_to_reg(dest,src);
         else if (!strcmp(operation,"add")) add_reg_to_reg(dest,src);
@@ -247,7 +444,6 @@ void print_reg_to_reg(char* operation,uint8_t D,uint8_t W,uint8_t R_M,uint8_t RE
 
 void print_reg_memory_to_from_reg(char* operation,
     int16_t displacement,uint8_t D,uint8_t W,uint8_t R_M,uint8_t REG,int ip_old){
-
     if (D == 1){
         printf("%s %s, [%s%+d]",
             operation,
@@ -255,6 +451,10 @@ void print_reg_memory_to_from_reg(char* operation,
             get_effective_address(R_M),
             displacement
             );
+        if (showclocks){
+            if (!strcmp(operation,"mov")) clock_mov_reg_from_memory(R_M,displacement);
+            if (!strcmp(operation,"add")) clock_add_reg_from_memory(R_M,displacement);
+        }
     }
     else if(D == 0){
         printf("%s [%s%+d], %s",
@@ -262,6 +462,10 @@ void print_reg_memory_to_from_reg(char* operation,
             get_effective_address(R_M),
             displacement,
             get_REG(W,REG));
+        if (showclocks){
+            if (!strcmp(operation,"mov")) clock_mov_reg_to_memory(R_M,displacement);
+            if (!strcmp(operation,"add")) clock_add_reg_to_memory(R_M,displacement);
+        }
     }
     else{
         fprintf(stderr, "D = %d not implemented!\n",D);
@@ -285,6 +489,10 @@ void print_reg_tofrom_direct(char* operation,int16_t displacement,uint8_t D,uint
             reg_name,
             displacement
             );
+        if (showclocks){
+            if (!strcmp(operation,"mov")) clock_mov_reg_tofrom_direct(displacement);
+            if (!strcmp(operation,"add")) clock_add_reg_tofrom_direct(displacement);
+        }
     }
     else if(D == 0){
         printf("%s [%+d], %s",
@@ -342,6 +550,9 @@ void disasm_mov_imm_tofrom_reg(uint8_t Left,char* operation,uint8_t* data){
     printf("%s %s, %d",
         operation,
         get_REG(W,REG), val);
+    if (showclocks){
+        if (!strcmp(operation,"mov")) clock_mov_imm_tofrom_reg();
+    }
     if (execution){
         if (!strcmp(operation,"mov")) mov_imm_tofrom_reg(REG, val);
         print_ip(ip_old);
@@ -377,6 +588,10 @@ void disasm_mov_imm_tofrom_regmem(uint8_t Left,char* operation,uint8_t* data){
             displacement,
             val
             );
+        if (showclocks){
+            if (!strcmp(operation,"mov")) clock_mov_reg_tofrom_direct(displacement);
+            if (!strcmp(operation,"add")) clock_add_reg_tofrom_direct(displacement);
+        }
         if (execution){
             if (!strcmp(operation,"mov")) mov_imm_to_direct_mem(displacement, val);
             print_ip(ip_old);
@@ -413,9 +628,12 @@ void disasm_arithmetic_imm_tofrom_regmem(uint8_t Left,uint8_t* data){
         if (SW  == 1){
             val = val + (data[ip++] << 8);
         }
-        printf("%s %s, %d;",
+        printf("%s %s, %d",
             operation,
             get_REG(W,R_M), val);
+        if (showclocks){
+            if (!strcmp(operation,"add")) clock_add_imm_tofrom_reg();
+        }
         if (execution){
             if (!strcmp(operation,"add")) add_imm_tofrom_reg(R_M, val);
             if (!strcmp(operation,"sub")) sub_imm_tofrom_reg(R_M, val);
@@ -438,14 +656,12 @@ void disasm_arithmetic_imm_tofrom_regmem(uint8_t Left,uint8_t* data){
             if (SW == 1){
                 val = val + (data[ip++] << 8);
             }
-            printf("%s %s [%+d], %d; R_M: %d, MOD: %d \n",
+            printf("%s %s [%+d], %d",
                 operation,
                 explicit_size,
                 // get_effective_address(R_M),
                 displacement,
-                val,
-                R_M,
-                MOD
+                val
                 );
         }
         else{
@@ -454,16 +670,18 @@ void disasm_arithmetic_imm_tofrom_regmem(uint8_t Left,uint8_t* data){
             if (SW == 1){
                 val = val + (data[ip++] << 8);
             }
-            printf("%s %s [%s%+d], %d; R_M: %d, MOD: %d \n",
+            printf("%s %s [%s%+d], %d",
                 operation,
                 explicit_size,
                 get_effective_address(R_M),
                 displacement,
-                val,
-                R_M,
-                MOD
+                val
                 );
+            if (showclocks){
+                if (!strcmp(operation,"add")) clock_add_imm_to_memory(R_M,displacement);
+            }
         }
+        printf("\n");
     }
 }
 
@@ -621,6 +839,9 @@ int main(int argc, char **argv){
         }
         if (strcmp(argv[i], "-dump") == 0) {
             dump = true;
+        }
+        if (strcmp(argv[i], "-showclocks") == 0) {
+            showclocks = true;
         }
     }
     if (execution){
