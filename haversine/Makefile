@@ -1,10 +1,11 @@
 CXX       := clang++
 
 OPTS      := -g -O0
-LANG      := -std=c++14
-PICKY     := -Wall
+LANG      := -std=c++17
+PICKY     := -Wall -Wextra -Werror
+INCLUDE   := -Iinclude
 
-CXXFLAGS  := $(LANG) $(OPTS) $(PICKY)
+CXXFLAGS  := $(LANG) $(OPTS) $(PICKY) $(INCLUDE)
 
 .PHONY	  : clean all
 
@@ -17,13 +18,14 @@ ifeq ($(OS),Linux)
 endif
 
 
-haversine.o 	: haversine.cpp 
-		  $(CXX) $(CXXFLAGS) -c haversine.cpp -o haversine.o
+build/haversine.o 	: src/haversine.cpp 
+		  $(CXX) $(CXXFLAGS) -c src/haversine.cpp -o build/haversine.o
 
-haversine.exe	: haversine.cpp
-		  $(CXX) $(CXXFLAGS) haversine.cpp -o haversine.exe
+haversine.exe	: build/haversine.o
+		  $(CXX) $(CXXFLAGS) build/haversine.o -o haversine.exe
 
 
 clean		:
-			/bin/rm -f *~ haversine.o haversine.exe
-			/bin/rm -rf *.exe.dSYM
+			rm -f *~ build/haversine.o haversine.exe
+			rm -rf *.exe.dSYM
+			rm -f haversine.json

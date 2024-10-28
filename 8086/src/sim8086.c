@@ -823,6 +823,7 @@ void disasm(uint8_t* data, size_t size){
         }
         else{
             fprintf(stderr, "Left = %d not implemented!\n",Left);
+            print_binary(Left);
             exit(EXIT_FAILURE);
         }
     }
