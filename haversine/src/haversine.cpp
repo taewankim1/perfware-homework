@@ -35,7 +35,7 @@ int main(int argc, char **argv){
     int random_seed = std::atoi(argv[2]);
     NUM_POINTS = std::atoi(argv[3]);
 
-    FILE *file = fopen("harversine.json", "w");
+    FILE *file = fopen("./data/harversine.json", "w");
     if (file == NULL) {
         printf("Unable to create file\n");
         return 1;
@@ -66,8 +66,8 @@ int main(int argc, char **argv){
         y_range1 = -90.0;
         y_range2 = 90.0;
     }
-    std::uniform_real_distribution<> lon_dist(x_range1, x_range2);
-    std::uniform_real_distribution<> lat_dist(y_range1, y_range2);
+    std::uniform_real_distribution<double> lon_dist(x_range1, x_range2);
+    std::uniform_real_distribution<double> lat_dist(y_range1, y_range2);
 
     fprintf(file, "{\"pairs\":[\n");
     for (int i=0;i<NUM_POINTS;++i){
@@ -77,21 +77,26 @@ int main(int argc, char **argv){
         data_ptr[2] = lon_dist(gen);
         data_ptr[3] = lat_dist(gen);
 
-        fprintf(file, "    {\"x0\":%lf, \"y0\":%lf, \"x1\":%lf, \"y1\":%lf}",data_ptr[0],data_ptr[1],data_ptr[2],data_ptr[3]);
+        fprintf(file, "    {\"x0\":%.15lf, \"y0\":%.15lf, \"x1\":%.15lf, \"y1\":%.15lf}",data_ptr[0],data_ptr[1],data_ptr[2],data_ptr[3]);
         if (i < NUM_POINTS - 1){
             fprintf(file, ",");
         }
         fprintf(file, "\n");
         sum += ReferenceHaversine(data_ptr[0],data_ptr[1],data_ptr[2],data_ptr[3],6372.8);
     }
-    fprintf(file, "]}\n");
+    fprintf(file,"],\n");
+
+    fprintf(file, "\"size\":%d,\n",NUM_POINTS);
+    average = sum / NUM_POINTS;
+    fprintf(file, "\"average\":%.15f",average);
+
+    fprintf(file,"}");
     fclose(file);
 
-    average = sum / NUM_POINTS;
 
     printf("JSON file created successfully\n");
     printf("Expected sum: %lf\n",average);
 
     return 0;
-    return EXIT_SUCCESS;
+    // return EXIT_SUCCESS;
 }

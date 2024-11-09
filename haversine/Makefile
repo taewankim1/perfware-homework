@@ -1,15 +1,13 @@
 CXX       := clang++
-
 OPTS      := -g -O0
 LANG      := -std=c++17
 PICKY     := -Wall -Wextra -Werror
 INCLUDE   := -Iinclude
-
 CXXFLAGS  := $(LANG) $(OPTS) $(PICKY) $(INCLUDE)
 
-.PHONY	  : clean all
+SRC_DIR   := src
+BUILD_DIR := build
 
-all		  : haversine.exe
 
 LIBS		:=
 OS		:= $(shell uname -s)
@@ -17,15 +15,29 @@ ifeq ($(OS),Linux)
 	LIBS	+= -lpthread
 endif
 
+all: haversine.exe read_haversine.exe
 
-build/haversine.o 	: src/haversine.cpp 
-		  $(CXX) $(CXXFLAGS) -c src/haversine.cpp -o build/haversine.o
+# Build object for haversine.cpp
+$(BUILD_DIR)/haversine.o: $(SRC_DIR)/haversine.cpp | $(BUILD_DIR)
+		$(CXX) $(CXXFLAGS) -c $(SRC_DIR)/haversine.cpp -o $@
 
-haversine.exe	: build/haversine.o
-		  $(CXX) $(CXXFLAGS) build/haversine.o -o haversine.exe
+# Build object for read_haversine.cpp
+$(BUILD_DIR)/read_haversine.o: $(SRC_DIR)/read_haversine.cpp | $(BUILD_DIR)
+		$(CXX) $(CXXFLAGS) -c $(SRC_DIR)/read_haversine.cpp -o $@
+
+# Build executable for haversine
+haversine.exe: $(BUILD_DIR)/haversine.o
+		$(CXX) $(CXXFLAGS) $(BUILD_DIR)/haversine.o -o $@
+
+# Build executable for read_haversine
+read_haversine.exe: $(BUILD_DIR)/read_haversine.o
+		$(CXX) $(CXXFLAGS) $(BUILD_DIR)/read_haversine.o -o $@
 
 
-clean		:
-			rm -f *~ build/haversine.o haversine.exe
-			rm -rf *.exe.dSYM
-			rm -f haversine.json
+# Cleanup
+clean:
+		rm -f *~ $(BUILD_DIR)/*.o *.exe
+		rm -rf *.exe.dSYM
+		rm -f haversine.json
+
+.PHONY: clean all
