@@ -3,11 +3,12 @@
 #include <assert.h>
 #include <string.h>
 #include <utils.h>
+#include <time.h>
 
-typedef struct {
-    double x0, y0;
-    double x1, y1;
-} Coordinate;
+// typedef struct {
+//     double x0, y0;
+//     double x1, y1;
+// } Coordinate;
 
 // char* find_string(char* ptr, int length){
 //     if (*ptr == '\0') return nullptr;
@@ -25,6 +26,10 @@ int main(int argc, char **argv){
     FILE* f = fopen(path, "r");
     assert(f != NULL);
 
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
+
     // get size
     int flag_seek = fseek(f,0,SEEK_END);
     assert(flag_seek == 0);
@@ -40,25 +45,16 @@ int main(int argc, char **argv){
     data[size] = '\0';
 
     fread(data,1,size,f);
-
     double x0, y0, x1, y1;
     int count = 0;
     double sum = 0;
     char *ptr = data;
     while( (ptr = strstr(ptr,"x0")) != nullptr){
-        sscanf(ptr, "x0\":%lf", &x0);
-
-        ptr = strstr(ptr,"y0");
-        sscanf(ptr, "y0\":%lf", &y0);
-
-        ptr = strstr(ptr,"x1");
-        sscanf(ptr, "x1\":%lf", &x1);
-
-        ptr = strstr(ptr,"y1");
-        sscanf(ptr, "y1\":%lf", &y1);
+        sscanf(ptr, "x0\":%lf, \"y0\":%lf, \"x1\":%lf, \"y1\":%lf}",&x0,&y0,&x1,&y1);
 
         sum += ReferenceHaversine(x0,y0,x1,y1,6372.8);
-        count++;
+        ++count;
+        ++ptr;
 
         // printf("-------------------\n");
         // printf("x0: %.15lf\n",x0);
@@ -82,7 +78,9 @@ int main(int argc, char **argv){
         printf("Reference sum is %lf\n",reference_sum);
         printf("Difference is %lf\n",sum - reference_sum);
     }
-
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double elapsed_time_sec = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    printf("Elapsed time sec is %lf\n",elapsed_time_sec);
 
     fclose(f);
     free(data);

@@ -1,13 +1,12 @@
 CXX       := clang++
 OPTS      := -g -O0
 LANG      := -std=c++17
-PICKY     := -Wall -Wextra -Werror
+PICKY     := -Wall -Wextra
 INCLUDE   := -Iinclude
 CXXFLAGS  := $(LANG) $(OPTS) $(PICKY) $(INCLUDE)
 
 SRC_DIR   := src
 BUILD_DIR := build
-
 
 LIBS		:=
 OS		:= $(shell uname -s)
@@ -15,29 +14,30 @@ ifeq ($(OS),Linux)
 	LIBS	+= -lpthread
 endif
 
-all: haversine.exe read_haversine.exe
+# List of executables to build
+TARGETS := haversine_generator haversine_read_simple listing_0071_os_timer_main listing_0072_cpu_timer_main listing_0073_cpu_timer_guessfreq_main listing_0075_timed_haversine_main
+EXES := $(addsuffix .exe, $(TARGETS))
+OBJS := $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(TARGETS)))
 
-# Build object for haversine.cpp
-$(BUILD_DIR)/haversine.o: $(SRC_DIR)/haversine.cpp | $(BUILD_DIR)
-		$(CXX) $(CXXFLAGS) -c $(SRC_DIR)/haversine.cpp -o $@
+# Pattern rule for object files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Build object for read_haversine.cpp
-$(BUILD_DIR)/read_haversine.o: $(SRC_DIR)/read_haversine.cpp | $(BUILD_DIR)
-		$(CXX) $(CXXFLAGS) -c $(SRC_DIR)/read_haversine.cpp -o $@
+# Pattern rule for executables
+%.exe: $(BUILD_DIR)/%.o
+	$(CXX) $(CXXFLAGS) $< -o $@
 
-# Build executable for haversine
-haversine.exe: $(BUILD_DIR)/haversine.o
-		$(CXX) $(CXXFLAGS) $(BUILD_DIR)/haversine.o -o $@
+# # Create build directory
+# $(BUILD_DIR):
+# 	mkdir -p $(BUILD_DIR)
 
-# Build executable for read_haversine
-read_haversine.exe: $(BUILD_DIR)/read_haversine.o
-		$(CXX) $(CXXFLAGS) $(BUILD_DIR)/read_haversine.o -o $@
-
+# All target
+all: $(EXES) $(OBJS)
 
 # Cleanup
 clean:
-		rm -f *~ $(BUILD_DIR)/*.o *.exe
-		rm -rf *.exe.dSYM
-		rm -f haversine.json
+	rm -f *~ $(BUILD_DIR)/*.o *.exe
+	rm -rf *.exe.dSYM
+	rm -f haversine.json
 
 .PHONY: clean all
