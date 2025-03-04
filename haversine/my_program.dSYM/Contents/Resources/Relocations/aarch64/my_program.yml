@@ -1,0 +1,9 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     my_program
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100003ED4, symSize: 0x54 }
+  - { offsetInCU: 0x2E7, offset: 0x2E7, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100003ED4, symSize: 0x54 }
+  - { offsetInCU: 0x31D, offset: 0x31D, size: 0x8, addend: 0x0, symName: __ZL14GetOSTimerFreqv, symObjAddr: 0x54, symBinAddr: 0x100003F28, symSize: 0xC }
+  - { offsetInCU: 0x33A, offset: 0x33A, size: 0x8, addend: 0x0, symName: __ZL11ReadOSTimerv, symObjAddr: 0x60, symBinAddr: 0x100003F34, symSize: 0x40 }
+...

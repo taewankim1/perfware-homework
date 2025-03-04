@@ -15,7 +15,11 @@ ifeq ($(OS),Linux)
 endif
 
 # List of executables to build
-TARGETS := haversine_generator haversine_read_simple listing_0071_os_timer_main listing_0072_cpu_timer_main listing_0073_cpu_timer_guessfreq_main listing_0075_timed_haversine_main
+TARGETS := haversine_generator haversine_read_simple_taewan \
+			listing_0071_os_timer_main listing_0072_cpu_timer_main \
+			listing_0073_cpu_timer_guessfreq_main listing_0075_timed_haversine_main
+# haversine_read_simple_casey \
+			 listing_0073_cpu_timer_guessfreq_main listing_0075_timed_haversine_main
 EXES := $(addsuffix .exe, $(TARGETS))
 OBJS := $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(TARGETS)))
 

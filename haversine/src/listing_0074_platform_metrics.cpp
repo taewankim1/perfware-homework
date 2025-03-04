@@ -1,4 +1,5 @@
 #include <utils.h>
+#include <stdio.h>
 
 #include <sys/time.h>
 
@@ -31,9 +32,9 @@ inline u64 GetCPUtimerFreq(void) {
     // OSElapsed - OS cycles in the given seconds
     // OSFreq / OSElapsed = the given seconds / one second
     // OSFreq / OSElapsed * CPUElapsed = CPU cycles in a second
-    uint64_t CPUfreq;
+    u64 CPUFreq = 0;
 
-    u64 MillisecondsToWait = 100;
+    u64 MillisecondsToWait = 1000;
 
 	u64 OSFreq = GetOSTimerFreq();
 	u64 CPUStart = ReadCPUTimer();
@@ -46,14 +47,13 @@ inline u64 GetCPUtimerFreq(void) {
 		OSEnd = ReadOSTimer();
 		OSElapsed = OSEnd - OSStart;
 	}
-	
 	u64 CPUEnd = ReadCPUTimer();
 	u64 CPUElapsed = CPUEnd - CPUStart;
-	u64 CPUFreq = 0;
+
 	if(OSElapsed)
 	{
 		CPUFreq = OSFreq * CPUElapsed / OSElapsed;
 	}
 
-    return CPUfreq;
+    return CPUFreq;
 }

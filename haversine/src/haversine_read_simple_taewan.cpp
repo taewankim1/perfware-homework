@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <utils.h>
-#include "listing_0074_platform_metrics.cpp"
+#include <time.h>
 #include <math.h>
 
 f64 read_long_to_string_from_json(char* ptr){
@@ -45,10 +45,8 @@ int main(int argc, char **argv)
     assert(f != NULL);
 
     // Declare variables used to measure the time.
-    u64 cpu_freq = GetCPUtimerFreq();
-	u64 cpu_start = ReadCPUTimer();
-	u64 cpu_elapsed_parse = 0;
-	u64 cpu_elapsed_sum = 0;
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
     // Get the full size of the json file.
     int flag_seek = fseek(f, 0, SEEK_END);
@@ -68,18 +66,14 @@ int main(int argc, char **argv)
     data[size] = '\0';
 
     // Read the file and save the data.
-    u64 cpu_read_json_start = ReadCPUTimer();
     fread(data, 1, size, f);
     f64 x0, y0, x1, y1;
     int count = 0;
     double sum = 0;
     char *ptr = data;
-    u64 cpu_read_json_end = ReadCPUTimer();
-    u64 cpu_elapsed_read_json = cpu_read_json_end - cpu_read_json_start;
 
     while (*ptr != '\0')
     {
-        u64 cpu_parse_start = ReadCPUTimer();
         // Find 'x'.
         while (*ptr != 'x' && *ptr != '\0')
         {
@@ -121,15 +115,18 @@ int main(int argc, char **argv)
             // printf("val: %.15lf\n",y1);
         }
         else break;
-        u64 cpu_parse_end = ReadCPUTimer();
-        cpu_elapsed_parse += cpu_parse_end - cpu_parse_start;
-
-        u64 cpu_sum_start = ReadCPUTimer();
         sum += ReferenceHaversine(x0,y0,x1,y1,6372.8);
         count++;
-        u64 cpu_sum_end = ReadCPUTimer();
-        cpu_elapsed_sum += cpu_sum_end - cpu_sum_start;
     }
+
+    // Don't remove the below. I need to compare it with the new approach.
+    // while( (ptr = strstr(ptr,"x0")) != nullptr){
+    //     sscanf(ptr, "x0\":%lf, \"y0\":%lf, \"x1\":%lf, \"y1\":%lf}",&x0,&y0,&x1,&y1);
+
+    //     sum += ReferenceHaversine(x0,y0,x1,y1,6372.8);
+    //     ++count;
+    //     ++ptr;
+    // }
 
     printf("-------------------\n");
     if (count != 0){
@@ -138,31 +135,21 @@ int main(int argc, char **argv)
     printf("Pair count: %d\n",count);
     printf("Haversine sum is %0.15lf\n",sum);
 
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double elapsed_time_sec = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    printf("Elapsed time sec is %lf\n",elapsed_time_sec);
+
     printf("\n");
     printf("Validation:\n");
     double reference_sum = 0.0;
     ptr = strstr(data,"average");
-
     if (ptr != nullptr){
         sscanf(ptr, "average\":%lf", &reference_sum);
         printf("Reference sum is %lf\n",reference_sum);
         printf("Difference is %lf\n",sum - reference_sum);
     }
 
-	u64 cpu_end = ReadCPUTimer();
-    u64 cpu_elapsed = cpu_end - cpu_start;
-    f64 total_seconds = (f64) cpu_elapsed / (f64) cpu_freq * 1000;
-    f64 read_json_seconds = (f64) cpu_elapsed_read_json / (f64) cpu_freq * 1000;
-    f64 parse_seconds = (f64) cpu_elapsed_parse / (f64) cpu_freq * 1000;
-    f64 sum_seconds = (f64) cpu_elapsed_sum / (f64) cpu_freq * 1000;
-
     fclose(f);
     free(data);
-
-    printf("\n");
-	printf("Total time: %.4fms\n", total_seconds);
-	printf("  Read: %.4fms (%.2f%%)\n", read_json_seconds, read_json_seconds / total_seconds * 100);
-	printf("  Parse: %.4fms (%.2f%%)\n", parse_seconds, parse_seconds / total_seconds * 100);
-	printf("  Sum: %.4fms (%.2f%%)\n", sum_seconds, sum_seconds / total_seconds * 100);
     return 0;
 }

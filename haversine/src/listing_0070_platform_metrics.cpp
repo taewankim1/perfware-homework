@@ -72,9 +72,12 @@ static u64 ReadOSTimer(void)
 // }
 
 // Read the ARMv8 timer (Apple Silicon)
+#include <mach/mach_time.h>
+
 inline u64 ReadCPUTimer(void) {
     u64 value;
-    asm volatile("mrs %0, cntvct_el0" : "=r"(value));
+    // asm volatile("mrs %0, cntvct_el0" : "=r"(value));
+    value = mach_absolute_time();
     return value;
 }
 
