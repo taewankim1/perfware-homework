@@ -1,4 +1,3 @@
-#include <iostream>
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -21,11 +20,11 @@ f64 read_long_to_string_from_json(char* ptr){
         ptr++;
     }
     ptr++;
-    int exponent = -1;
-    while(*ptr != '.' && *ptr != ',' && *ptr != '}')
-    {
-        fraction += (*ptr - '0') * pow(10,exponent);
-        exponent--;
+
+    double divisor = 1.0;
+    while (*ptr >= '0' && *ptr <= '9') {
+        divisor *= 10.0;
+        fraction += (*ptr - '0') / divisor;
         ptr++;
     }
 
@@ -44,29 +43,29 @@ int main(int argc, char **argv)
     FILE *f = fopen(path, "r");
     assert(f != NULL);
 
-    // Declare variables used to measure the time.
+    // Declare variables for time measure.
     struct timespec start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     // Get the full size of the json file.
     int flag_seek = fseek(f, 0, SEEK_END);
     assert(flag_seek == 0);
-    const long size = ftell(f);
+    const long size_json = ftell(f);
     flag_seek = fseek(f, 0, SEEK_SET);
-    printf("Input Size: %ld\n", size);
+    printf("Input Size: %ld\n", size_json);
 
     // Allocate the memory to read the entire json file.
-    char *data = (char *)malloc(size + 1);
+    char *data = (char *)malloc(size_json + 1);
     if (data == nullptr)
     {
         fprintf(stderr, "Error allocating memory\n");
         return EXIT_FAILURE;
     }
     // Put the null at the last element.
-    data[size] = '\0';
+    data[size_json] = '\0';
 
     // Read the file and save the data.
-    fread(data, 1, size, f);
+    fread(data, 1, size_json, f);
     f64 x0, y0, x1, y1;
     int count = 0;
     double sum = 0;
@@ -118,15 +117,6 @@ int main(int argc, char **argv)
         sum += ReferenceHaversine(x0,y0,x1,y1,6372.8);
         count++;
     }
-
-    // Don't remove the below. I need to compare it with the new approach.
-    // while( (ptr = strstr(ptr,"x0")) != nullptr){
-    //     sscanf(ptr, "x0\":%lf, \"y0\":%lf, \"x1\":%lf, \"y1\":%lf}",&x0,&y0,&x1,&y1);
-
-    //     sum += ReferenceHaversine(x0,y0,x1,y1,6372.8);
-    //     ++count;
-    //     ++ptr;
-    // }
 
     printf("-------------------\n");
     if (count != 0){
